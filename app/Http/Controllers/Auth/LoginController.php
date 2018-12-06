@@ -39,7 +39,7 @@ class LoginController extends Controller
     {
         $this->middleware('guest')->except('logout');
     }
-	
+
 	 /**
      * Redirect the user to the GitHub authentication page.
      *
@@ -49,7 +49,7 @@ class LoginController extends Controller
     {
         return Socialite::driver('github')->redirect();
     }
-	
+
     /**
      * Obtain the user information from GitHub.
      *
@@ -57,7 +57,7 @@ class LoginController extends Controller
      */
     public function handleProviderCallback()
     {
-        $github_user = Socialite::driver('github')->user();
+        $github_user = Socialite::driver('github')->stateless()->user();
 		if($github_user->getName()==""){
 			$data = "Your github profile is missing your name, Please update your Github profile and try to log in again?";
 			return back()->withErrors(['field_name' => $data]);
@@ -65,24 +65,24 @@ class LoginController extends Controller
 		}
 		//
 		$user = $this->userFindOrCreate($github_user);
-		
+
 		// login the user
 		Auth::login($user, true);
-		
-		
-		
+
+
+
 		// redirect to (home or dashboard)
 		//echo $this->redirectTo;
 		return redirect("/dashboard");
-		
-		
+
+
 		//
         // $user->token;
     }
 	public function userFindOrCreate($github_user){
-		
+
 		$user = User::where('provider_id', $github_user->id)->first();
-		
+
 		if(!$user){
 			$user = new User;
 			$user->name = $github_user->getName();
@@ -92,6 +92,6 @@ class LoginController extends Controller
 			$user->save();
 		}
 		return $user;
-		
+
 	}
 }
